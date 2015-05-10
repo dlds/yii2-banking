@@ -1,0 +1,26 @@
+{
+    "name": "dlds/yii2-banking",
+    "description": "Yii2 Banks api handlers",
+    "keywords": ["yii2", "banking", "handler"],
+    "type": "yii2-extension",
+    "license": "BSD",
+    "support": {
+        "issues": "https://github.com/dlds/yii2-banking/issues",
+        "wiki": "https://github.com/dlds/yii2-banking/wiki",
+        "source": "https://github.com/dlds/yii2-banking"
+    },
+    "authors": [
+        {
+            "name": "Jiri Svoboda",
+            "email": "jiri.svoboda@dlds.cz"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "dlds\\banking\\": ""
+        }
+    }
+}
