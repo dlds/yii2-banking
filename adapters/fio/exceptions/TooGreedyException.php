@@ -2,6 +2,8 @@
 
 namespace dlds\banking\adapters\fio\exceptions;
 
-class TooGreedyException extends \RuntimeException {
+use dlds\banking\interfaces\BankingExceptionInterface;
+
+class TooGreedyException extends \RuntimeException implements BankingExceptionInterface {
 
 }

@@ -2,12 +2,13 @@
 
 namespace dlds\banking\adapters\fio\handlers;
 
+use dlds\banking\adapters\fio\components\TransactionList;
 use dlds\banking\adapters\fio\exceptions\InternalErrorException;
 use dlds\banking\adapters\fio\exceptions\TooGreedyException;
 use dlds\banking\adapters\fio\builders\UrlBuilder;
 use GuzzleHttp\Client as Guzzle;
 
-class TransactionHandler {
+class ApiHandler {
 
     /**
      * @var \dlds\banking\adapters\fio\builders\UrlBuilder
@@ -70,7 +71,7 @@ class TransactionHandler {
         }
 
         //Key downloaded from https://www.geotrust.com/resources/root-certificates/
-        return __DIR__.'/keys/Equifax_Secure_Certificate_Authority.pem';
+        return __DIR__.'/../keys/Equifax_Secure_Certificate_Authority.pem';
     }
 
     /**
@@ -128,10 +129,14 @@ class TransactionHandler {
     {
         $client = $this->getClient();
 
-        $url = $this->urlBuilder->buildPeriodsUrl($from, $to);
-
-        var_dump($url);
-        die();
+        if (false === $from)
+        {
+            $url = $this->urlBuilder->buildLast();
+        }
+        else
+        {
+            $url = $this->urlBuilder->buildPeriods($from, $to);
+        }
 
         try
         {

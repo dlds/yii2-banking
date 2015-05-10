@@ -42,11 +42,17 @@ class UrlBuilder {
     }
 
     /**
-     * @param \DateTime $from
-     * @param \DateTime $to
-     * @return string
+     * @see http://www.fio.cz/docs/cz/API_Bankovnictvi.pdf section 5.2.3
      */
-    public function buildPeriodsUrl(\DateTime $from, \DateTime $to)
+    public function buildLast()
+    {
+        return sprintf(self::BASE_URL.'last/%s/transactions.json', $this->getToken());
+    }
+
+    /**
+     * @see http://www.fio.cz/docs/cz/API_Bankovnictvi.pdf section 5.2.1
+     */
+    public function buildPeriods(\DateTime $from, \DateTime $to)
     {
         return sprintf(
             self::BASE_URL.'periods/%s/%s/%s/transactions.json', $this->getToken(), $from->format('Y-m-d'), $to->format('Y-m-d')

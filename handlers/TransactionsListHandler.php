@@ -5,7 +5,7 @@ namespace dlds\banking\handlers;
 use dlds\banking\interfaces\TransactionInterface;
 use dlds\banking\interfaces\TransactionListInterface;
 
-class TransactionsListHandler {
+abstract class TransactionsListHandler {
 
     /**
      * Enrolls transaction list and write all transactions into DB
@@ -14,7 +14,7 @@ class TransactionsListHandler {
      * for writing transaction into DB
      * @return
      */
-    public static function enroll(BankTransactionListInterface $list, BankTransactionInterface $model)
+    public static function enroll(TransactionListInterface $list, TransactionInterface $model)
     {
         foreach ($list->getTransactions() as $transaction)
         {

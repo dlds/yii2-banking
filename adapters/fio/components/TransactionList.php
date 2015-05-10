@@ -1,8 +1,11 @@
 <?php
 
-namespace dlds\banking\components;
+namespace dlds\banking\adapters\fio\components;
 
-class TransactionList {
+use dlds\banking\adapters\fio\components\Account;
+use dlds\banking\interfaces\TransactionListInterface;
+
+class TransactionList implements TransactionListInterface {
 
     /** @var float */
     protected $openingBalance;
@@ -75,9 +78,12 @@ class TransactionList {
             $data->info->openingBalance, $data->info->closingBalance, new \DateTime($data->info->dateStart), new \DateTime($data->info->dateEnd), $data->info->idFrom, $data->info->idTo, $data->info->idLastDownload, $account
         );
 
-        foreach ($data->transactionList->transaction as $transaction)
+        if ($data->transactionList)
         {
-            $transactionList->addTransaction(Transaction::create($transaction));
+            foreach ($data->transactionList->transaction as $transaction)
+            {
+                $transactionList->addTransaction(Transaction::create($transaction));
+            }
         }
 
         return $transactionList;

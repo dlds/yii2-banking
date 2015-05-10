@@ -1,8 +1,10 @@
 <?php
 
-namespace dlds\banking\components;
+namespace dlds\banking\adapters\fio\components;
 
-class Transaction {
+use dlds\banking\interfaces\TransactionInterface;
+
+class Transaction implements TransactionInterface {
 
     /** @var int */
     protected $id;

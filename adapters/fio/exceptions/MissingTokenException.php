@@ -2,6 +2,8 @@
 
 namespace dlds\banking\adapters\fio\exceptions;
 
-class MissingTokenException extends \UnexpectedValueException {
+use dlds\banking\interfaces\BankingExceptionInterface;
+
+class MissingTokenException extends \UnexpectedValueException implements BankingExceptionInterface {
 
 }

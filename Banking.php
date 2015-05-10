@@ -19,6 +19,13 @@ use dlds\banking\interfaces\ApiBankAdapterInterface;
 class Banking extends \yii\base\Component {
 
     /**
+     * Enroll results
+     */
+    const ENROLL_ALL = 100;
+    const ENROLL_PARTIAL = 110;
+    const ENROLL_NONE = 900;
+
+    /**
      * @var array adapters
      */
     public $adapters;

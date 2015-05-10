@@ -2,6 +2,8 @@
 
 namespace dlds\banking\adapters\fio\exceptions;
 
-class InternalErrorException extends \RuntimeException {
+use dlds\banking\interfaces\BankingExceptionInterface;
+
+class InternalErrorException extends \RuntimeException implements BankingExceptionInterface {
 
 }

@@ -3,8 +3,17 @@
 namespace dlds\banking\interfaces;
 
 use dlds\banking\interfaces\TransactionListInterface;
+use dlds\banking\interfaces\TransactionTemplateInterface;
 
 interface AdapterInterface {
+
+    /**
+     * Enrolls all incoming transactions in given list into DB
+     * @param TransactionListInterface $list given list
+     * @param TransactionTemplateInterface $template given model
+     * to be used as active record template
+     */
+    public function enrollIncomings(TransactionListInterface $list, TransactionTemplateInterface $template);
 
     /**
      * Downloads new transactions from bank server

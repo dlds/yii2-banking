@@ -1,8 +1,10 @@
 <?php
 
-namespace dlds\banking\adapters\fio\handlers;
+namespace dlds\banking\adapters\fio\components;
 
-class AccountHandler {
+use dlds\banking\interfaces\AccountInterface;
+
+class Account implements AccountInterface {
 
     /** @var string */
     protected $accountNumber;
