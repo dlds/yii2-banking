@@ -2,6 +2,6 @@
 
 namespace dlds\banking\interfaces;
 
-class BankTransactionListInterface {
+class TransactionListInterface {
     
 }

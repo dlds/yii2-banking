@@ -1,8 +1,8 @@
 <?php
 
-namespace dlds\banking\adapters\fio;
+namespace dlds\banking\adapters\fio\builders;
 
-use FioApi\Exceptions\MissingTokenException;
+use dlds\banking\adapters\fio\exceptions\MissingTokenException;
 
 class UrlBuilder {
 

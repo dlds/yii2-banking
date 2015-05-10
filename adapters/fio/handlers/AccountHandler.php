@@ -1,8 +1,8 @@
 <?php
 
-namespace dlds\banking\adapters\fio;
+namespace dlds\banking\adapters\fio\handlers;
 
-class Account {
+class AccountHandler {
 
     /** @var string */
     protected $accountNumber;

@@ -25,6 +25,8 @@ class Banking extends \yii\base\Component {
 
     /**
      * Retrieves appropriate adapter based on give adapter key
+     * @return \dlds\payment\services\payment\AdapterInterface
+     * or FALSE if addapter does not exist
      */
     public function getAdapter($key)
     {
@@ -32,28 +34,9 @@ class Banking extends \yii\base\Component {
 
         if ($adapter)
         {
-            var_dump($adapter);
+            return \Yii::createObject($adapter);
         }
 
         return false;
-    }
-
-    /**
-     * Downloads transactions list from banks using module adapters
-     * @return type
-     */
-    public function downloadTransactionsList($adapter)
-    {
-        $transactions = new adapters\fio\TransactionList;
-
-        foreach ($this->adapters as $key => $adapter)
-        {
-            if ($adapter instanceof ApiBankAdapterInterface)
-            {
-                $transactions[$key] = $adapter->downloadTransactionsList();
-            }
-        }
-
-        return $transactions;
     }
 }

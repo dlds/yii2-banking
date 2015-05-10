@@ -1,7 +1,7 @@
 <?php
-namespace FioApi\Exceptions;
 
-class MissingTokenException extends \UnexpectedValueException
-{
+namespace dlds\banking\adapters\fio\exceptions;
+
+class MissingTokenException extends \UnexpectedValueException {
 
 }

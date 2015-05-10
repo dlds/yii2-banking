@@ -1,7 +1,7 @@
 <?php
-namespace FioApi\Exceptions;
 
-class InternalErrorException extends \RuntimeException
-{
+namespace dlds\banking\adapters\fio\exceptions;
+
+class InternalErrorException extends \RuntimeException {
 
 }

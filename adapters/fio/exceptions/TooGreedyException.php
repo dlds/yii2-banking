@@ -1,7 +1,7 @@
 <?php
-namespace FioApi\Exceptions;
 
-class TooGreedyException extends \RuntimeException
-{
+namespace dlds\banking\adapters\fio\exceptions;
+
+class TooGreedyException extends \RuntimeException {
 
 }
