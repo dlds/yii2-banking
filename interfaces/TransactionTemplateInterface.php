@@ -78,4 +78,10 @@ interface TransactionTemplateInterface {
      * @param string $comment given comment
      */
     public function setTransactionComment($comment);
+
+    /**
+     * Finds transaction by transaction id
+     * @return TransactionTemplateInterface transaction
+     */
+    public function findByTransactionId($transactionId);
 }

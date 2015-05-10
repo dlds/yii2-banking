@@ -45,16 +45,18 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
             {
                 if ($transaction instanceof TransactionInterface)
                 {
+                    $transactionId = $transaction->getId();
+
                     $amount = $transaction->getAmount();
 
-                    if ($amount > 0)
+                    if ($amount > 0 && !$template->findByTransactionId($transactionId))
                     {
                         $model = clone $template;
                         $model->setTransactionAmount($amount);
                         $model->setTransactionVariableSymbol($transaction->getVariableSymbol());
                         $model->setTransactionPerformingDateTime($transaction->getDate());
                         $model->setTransactionComment($transaction->getComment());
-                        $model->setTransactionId($transaction->getId());
+                        $model->setTransactionId($transactionId);
                         $model->setTransactionSenderAccountNum($transaction->getSenderAccountNumber());
                         $model->setTransactionSenderBankCode($transaction->getSenderBankCode());
 
