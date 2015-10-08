@@ -1,0 +1,14 @@
+# Codeception Test Suite Configuration
+
+# suite for unit (internal) tests.
+class_name: UnitTester
+modules:
+    enabled: [Asserts, UnitHelper, Db]
+    config:
+      Db:
+         dsn: 'mysql:host=localhost;dbname=yii2_banking'
+         user: 'root'
+         password: 'root'
+         dump: 'tests/_data/dump.sql'
+         populate: true
+         cleanup: false
