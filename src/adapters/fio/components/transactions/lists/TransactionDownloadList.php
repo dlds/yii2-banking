@@ -3,9 +3,10 @@
 namespace dlds\banking\adapters\fio\components;
 
 use dlds\banking\adapters\fio\components\Account;
-use dlds\banking\interfaces\TransactionListInterface;
+use dlds\banking\adapters\fio\components\transactions\lists\TransactionList;
+use dlds\banking\interfaces\transactions\lists\TransactionDownloadListInterface;
 
-class TransactionList implements TransactionListInterface {
+class TransactionDownloadList extends TransactionList implements TransactionDownloadListInterface {
 
     /** @var float */
     protected $openingBalance;
@@ -31,9 +32,6 @@ class TransactionList implements TransactionListInterface {
     /** @var Account */
     protected $account;
 
-    /** @var Transaction[] */
-    protected $transactions = [];
-
     /**
      * @param float $openingBalance
      * @param float $closingBalance
@@ -54,14 +52,6 @@ class TransactionList implements TransactionListInterface {
         $this->idTo = $idTo;
         $this->idLastDownload = $idLastDownload;
         $this->account = $account;
-    }
-
-    /**
-     * @param Transaction $transaction
-     */
-    protected function addTransaction(Transaction $transaction)
-    {
-        $this->transactions[] = $transaction;
     }
 
     /**
@@ -151,13 +141,5 @@ class TransactionList implements TransactionListInterface {
     public function getAccount()
     {
         return $this->account;
-    }
-
-    /**
-     * @return Transaction[]
-     */
-    public function getTransactions()
-    {
-        return $this->transactions;
     }
 }

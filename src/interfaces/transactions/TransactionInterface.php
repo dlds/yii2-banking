@@ -1,6 +1,6 @@
 <?php
 
-namespace dlds\banking\interfaces;
+namespace dlds\banking\interfaces\transactions;
 
 interface TransactionInterface {
 

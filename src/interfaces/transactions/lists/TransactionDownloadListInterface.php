@@ -1,8 +1,8 @@
 <?php
 
-namespace dlds\banking\interfaces;
+namespace dlds\banking\interfaces\transactions\lists;
 
-interface TransactionListInterface {
+interface TransactionDownloadListInterface extends TransactionListInterface {
 
     /**
      * Creates transaction list from given stdClass
@@ -48,9 +48,4 @@ interface TransactionListInterface {
      * Retrieves account info the transactions were downloaded from
      */
     public function getAccount();
-
-    /**
-     * Retrieves all transactions in list
-     */
-    public function getTransactions();
 }

@@ -2,10 +2,27 @@
 
 namespace dlds\banking\adapters\fio\components;
 
-use dlds\banking\interfaces\TransactionInterface;
+use dlds\banking\interfaces\transactions\TransactionInterface;
 
 class Transaction implements TransactionInterface {
 
+    /**
+     * Currencies codes
+     */
+    const CURRENCY_CZ = 'CZK';
+    const CURRENCY_EUR = 'EUR';
+
+    /**
+     * Transaction type
+     */
+    const TYPE_STANDARD = 431001;
+    const TYPE_ACCELERATED = 431004;
+    const TYPE_PRIORITY = 431005;
+    const TYPE_COLLECTION_ORDER = 431022;
+
+    /**
+     * Others
+     */
     const TIMEZONE = "Europe/Prague";
 
     /** @var int */
@@ -308,5 +325,15 @@ class Transaction implements TransactionInterface {
     {
         $this->userMessage = $value;
         return $this;
+    }
+
+    /**
+     * Get all params as array.
+     * @return array
+     * @return \FioApi\Transaction
+     */
+    public function getParams()
+    {
+        return $this->params;
     }
 }

@@ -12,74 +12,47 @@ class DomesticTransaction extends Transaction {
     }
 
     /**
-     * Set your account number
-     * @param int $value Your account number
+     * Set bank code of a sender account
+     * @param int $value Bank code
      * @return \FioApi\DomesticTransaction
      */
     public function setAccountFrom($value)
     {
-        return $this->_setAccountFrom($value);
+        $this->params['accountFrom'] = $value;
+        return parent::setAccountFrom($value);
     }
 
     /**
-     * Set currency of transaction
-     * @param string $value Currency code (standard ISO 4217; for example CZK)
+     * Set currency
+     * @param string $value currency
      * @return \FioApi\DomesticTransaction
      */
     public function setCurrency($value)
     {
-        return $this->_setCurrency($value);
+        $this->params['currency'] = $value;
+        return parent::setCurrency($value);
     }
 
     /**
-     * Set amount.
-     * @param float $value Amount
+     * Set amount
+     * @param float $value amount
      * @return \FioApi\DomesticTransaction
      */
     public function setAmount($value)
     {
-        return $this->_setAmount($value);
+        $this->params['amount'] = $value;
+        return parent::setAmount($value);
     }
 
     /**
-     * Set number of a beneficiary's account.
-     * @param string/int $value Beneficiary's account number
+     * Set account to
+     * @param int $value account to
      * @return \FioApi\DomesticTransaction
      */
     public function setAccountTo($value)
     {
-        return $this->_setAccountTo($value);
-    }
-
-    /**
-     * Set date of transaction
-     * @param \DateTime $value Date of transaction (today or in a future)
-     * @return \FioApi\DomesticTransaction
-     */
-    public function setDate($value)
-    {
-        return $this->_setDate($value);
-    }
-
-    /**
-     * Set your comment of this transaction.
-     * @param string $value Your comment
-     * @return \FioApi\DomesticTransaction
-     */
-    public function setComment($value)
-    {
-        return $this->_setComment($value);
-    }
-
-    /**
-     * Set payment reason.
-     * Check it in FIO API manual: http://www.fio.cz/docs/cz/API_Bankovnictvi.pdf
-     * @param int $value Payment reason
-     * @return \FioApi\DomesticTransaction
-     */
-    public function setPaymentReason($value)
-    {
-        return $this->_setPaymentReason($value);
+        $this->params['accountTo'] = $value;
+        return parent::setAccountTo($value);
     }
 
     /**
@@ -125,6 +98,17 @@ class DomesticTransaction extends Transaction {
     {
         $this->params['ss'] = $value;
         return $this;
+    }
+
+    /**
+     * @param \DateTime $value
+     * @return \FioApi\Transaction
+     */
+    public function setDate(\DateTime $value)
+    {
+        $value->setTimezone(new \DateTimeZone(self::TIMEZONE));
+        $this->params['date'] = $value->format('Y-m-d');
+        return parent::setDate($value);
     }
 
     /**

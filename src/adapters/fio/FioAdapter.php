@@ -3,11 +3,12 @@
 namespace dlds\banking\adapters\fio;
 
 use dlds\banking\Banking;
-use dlds\banking\interfaces\TransactionInterface;
-use dlds\banking\interfaces\TransactionListInterface;
-use dlds\banking\interfaces\TransactionTemplateInterface;
-use dlds\banking\adapters\fio\handlers\ApiHandler;
-use dlds\banking\adapters\fio\handlers\UploadResponseHandler;
+use dlds\banking\adapters\fio\handlers\api\ApiUploadHandler;
+use dlds\banking\adapters\fio\components\transactions\lists\TransactionUploadList;
+use dlds\banking\interfaces\transactions\TransactionInterface;
+use dlds\banking\interfaces\transactions\TransactionalRecordInterface;
+use dlds\banking\interfaces\transactions\lists\TransactionDownloadListInterface;
+use dlds\banking\interfaces\transactions\lists\TransactionUploadListInterface;
 
 class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\AdapterInterface {
 
@@ -15,6 +16,11 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
      * @var string given api token used to communicate with bank api
      */
     public $token;
+
+    /**
+     * @var boolean
+     */
+    public $test = false;
 
     /**
      * Adapter init method, checks if api token is provided
@@ -30,11 +36,11 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
 
     /**
      * Enrolls all incoming transactions in given list into DB
-     * @param TransactionListInterface $list given list
-     * @param TransactionTemplateInterface $template given model
+     * @param TransactionDownloadListInterface $list given list
+     * @param TransactionalRecordInterface $record given model
      * to be used as active record template
      */
-    public function enrollIncomings(TransactionListInterface $list, TransactionTemplateInterface $template)
+    public function enrollIncomings(TransactionDownloadListInterface $list, TransactionalRecordInterface $record)
     {
         $transactions = $list->getTransactions();
 
@@ -46,9 +52,9 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
             {
                 if ($transaction instanceof TransactionInterface)
                 {
-                    $model = $this->templateFromTransaction($template, $transaction);
+                    $model = $this->initTransactionalRecord(clone $record, $transaction);
 
-                    if ($model->getTransactionAmount() > 0 && !$template->findByTransactionId($model->getTransactionId()))
+                    if ($model->getTransactionAmount() > 0 && !$record->findByTransactionId($model->getTransactionId()))
                     {
                         if ($model->save())
                         {
@@ -70,7 +76,7 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
      * Downloads new transactions from bank server
      * automatically detecs undownloded transactions
      * by set stop on bank server
-     * @return \dlds\banking\interfaces\TransactionListInterface list
+     * @return \dlds\banking\interfaces\TransactionDownloadListInterface list
      */
     public function downloadTransactions()
     {
@@ -80,7 +86,7 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
     /**
      * Download all transaction since given datetime
      * @param \DateTime $datetime given date time
-     * @return \dlds\banking\interfaces\TransactionListInterface list
+     * @return \dlds\banking\interfaces\TransactionDownloadListInterface list
      */
     public function downloadTransactionsSince(\DateTime $datetime)
     {
@@ -90,7 +96,7 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
     /**
      * Download all transaction in given range
      * @param \DateTime $datetime given date time
-     * @return \dlds\banking\interfaces\TransactionListInterface list
+     * @return \dlds\banking\interfaces\TransactionDownloadListInterface list
      */
     public function downloadTransactionsFromTo(\DateTime $from, \DateTime $to)
     {
@@ -98,58 +104,121 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
     }
 
     /**
+     * Uploads transactions list onto bank server to be processed
+     * @param array $models given models to be enrolled
+     * @return boolen TRUE on success, FALSE on failure
+     */
+    public function uploadTransactions(array $models)
+    {
+        $list = $this->createUploadList($models);
+
+        if ($list && $list->hasTransactions())
+        {
+            $instruction = ApiUploadHandler::instance($this->token)->uploadList($list);
+
+            if (false !== $instruction)
+            {
+                $this->setTransactionalRecordsAsProcessed($models, $instruction);
+
+                return Banking::ENROLL_ALL;
+            }
+
+            return Banking::ENROLL_PARTIAL;
+        }
+
+        return Banking::ENROLL_NONE;
+    }
+
+    /**
      * Creates transactions list
      * @param array $models given models to be added into list
-     * @retun TransactionListInterface $list
+     * @retun array $list
      */
     public function createUploadList(array $models)
     {
+        return $this->initTransactionUploadList(new TransactionUploadList, $models);
+    }
+
+    /**
+     * Creates transactional object from given transaction
+     * @param TransactionalRecordInterface $record given model to be used
+     * @param TransactionInterface $transaction given transaction to be used as initializer
+     * @return TransactionalRecordInterface local template object
+     */
+    private function initTransactionalRecord(TransactionalRecordInterface $record, TransactionInterface $transaction)
+    {
+        $record->setTransactionAmount($transaction->getAmount());
+        $record->setTransactionVariableSymbol($transaction->getVariableSymbol());
+        $record->setTransactionPerformingDateTime($transaction->getDate());
+        $record->setTransactionComment($transaction->getComment());
+        $record->setTransactionId($transaction->getId());
+        $record->setTransactionSenderAccountNum($transaction->getSenderAccountNumber());
+        $record->setTransactionSenderBankCode($transaction->getSenderBankCode());
+
+        return $record;
+    }
+
+    /**
+     * Initializes given list by given models
+     * @param TransactionUploadList $list given list to be used
+     * @param array $models given models
+     * @return TransactionUploadList initialized list
+     */
+    private function initTransactionUploadList(TransactionUploadListInterface $list, array $models)
+    {
         foreach ($models as $model)
         {
-            if ($model instanceof TransactionTemplateInterface)
+            /** @var $model TransactionalRecordInterface */
+            if ($model instanceof TransactionalRecordInterface)
             {
-                var_dump($model);
-                die('ano');
+                // TODO: check if transaction would be domestic or not
+                $transaction = new components\transactions\DomesticTransaction();
+
+                //$transaction->setAccountFrom($model->getTransactionSenderAccountNum());
+                $transaction->setAccountFrom('2700587809');
+
+                $transaction->setCurrency(components\transactions\DomesticTransaction::CURRENCY_CZ);
+
+                if ($this->test)
+                {
+                    $transaction->setAmount(1);
+                }
+                else
+                {
+                    $transaction->setAmount($model->getTransactionAmount());
+                }
+
+                //$transaction->setAccountTo($model->getTransactionRecipientAccountNum());
+                $transaction->setAccountTo(2600742963);
+
+                $transaction->setBankCode($model->getTransactionRecipientBankCode());
+                //$transaction->setVariableSymbol($model->getTransactionVariableSymbol());
+                $transaction->setDate(new \DateTime('NOW'));
+                //$transaction->setPaymentType(components\transactions\DomesticTransaction::TYPE_STANDARD);
+
+                if ($model->setTransactionAsReadyToPay() && $model->save())
+                {
+                    $list->addTransaction($transaction);
+                }
             }
         }
-        var_dump($models);
-        die('ne');
+
+        return $list;
     }
 
     /**
-     * Uploads transactions list onto bank server to be processed
-     * @param TransactionListInterface $list given list
-     * @return boolen TRUE on success, FALSE on failure
+     * Sets given transactional records as processed
+     * @param array $records
+     * @param int $instruction bank instruction id
      */
-    public function uploadTransactions(TransactionListInterface $list)
+    private function setTransactionalRecordsAsProcessed(array $records, $instruction)
     {
-        $filepath = '';
-
-        $tmpfname = tempnam($this->tempDir, "FIO");
-        file_put_contents($tmpfname, $this->xml->asXML());
-
-        $response = ApiHandler::instance($this->token)->uploadXml($filepath);
-
-        return UploadResponseHandler::parseXmlResponse($response);
-    }
-
-    /**
-     * Creates template object from given transaction
-     * @param TransactionTemplateInterface $template given template to be used
-     * @param TransactionInterface $transaction given transaction to be used as initializer
-     * @return TransactionTemplateInterface local template object
-     */
-    private function templateFromTransaction(TransactionTemplateInterface $template, TransactionInterface $transaction)
-    {
-        $model = clone $template;
-        $model->setTransactionAmount($transaction->getAmount());
-        $model->setTransactionVariableSymbol($transaction->getVariableSymbol());
-        $model->setTransactionPerformingDateTime($transaction->getDate());
-        $model->setTransactionComment($transaction->getComment());
-        $model->setTransactionId($transaction->getId());
-        $model->setTransactionSenderAccountNum($transaction->getSenderAccountNumber());
-        $model->setTransactionSenderBankCode($transaction->getSenderBankCode());
-
-        return $model;
+        foreach ($records as $record)
+        {
+            if ($record instanceof TransactionalRecordInterface)
+            {
+                $record->setTransactionAsProcessed($instruction) && $record->save();
+            }
+        }
     }
 }

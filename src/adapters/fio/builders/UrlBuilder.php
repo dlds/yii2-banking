@@ -14,11 +14,17 @@ class UrlBuilder {
     protected $token;
 
     /**
+     * @var string path to communication certificate
+     */
+    protected $certificate;
+
+    /**
      * @param string $token
      */
-    public function __construct($token)
+    public function __construct($token, $certificate)
     {
         $this->setToken($token);
+        $this->setCertificate($certificate);
     }
 
     /**
@@ -38,7 +44,25 @@ class UrlBuilder {
         {
             throw new MissingTokenException('Token is required for ebanking API calls. You can get one at https://www.fio.cz/.');
         }
+
         $this->token = $token;
+    }
+
+    /**
+     * Sets certificate file path
+     * @param string $path
+     */
+    public function setCertificate($path)
+    {
+        $this->certificate = $path;
+    }
+
+    /**
+     * @return string certificate file path
+     */
+    public function getCertificate()
+    {
+        return $this->certificate;
     }
 
     /**
@@ -64,6 +88,6 @@ class UrlBuilder {
      */
     public function buildUpload()
     {
-        return self::BASE_URL.'import';
+        return self::BASE_URL.'import/';
     }
 }
