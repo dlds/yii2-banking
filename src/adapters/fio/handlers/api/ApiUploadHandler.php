@@ -227,8 +227,10 @@ class ApiUploadHandler extends ApiHandler {
      */
     protected function curlResult(array $response)
     {
-        // TODO: implement logging result
-
+        // TODO: implement better logging result
+        
+        \Yii::info(var_export($response, true));
+        
         $error = ArrayHelper::getValue($response, 'errorCode', self::ERROR_NO_RESPONSE);
 
         if (self::ERROR_NONE == $error)

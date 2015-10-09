@@ -174,25 +174,24 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
                 // TODO: check if transaction would be domestic or not
                 $transaction = new components\transactions\DomesticTransaction();
 
-                //$transaction->setAccountFrom($model->getTransactionSenderAccountNum());
-                $transaction->setAccountFrom('2700587809');
-
                 $transaction->setCurrency(components\transactions\DomesticTransaction::CURRENCY_CZ);
 
                 if ($this->test)
                 {
+                    $transaction->setAccountFrom('2700587809');
+                    $transaction->setAccountTo(2600742963);
+                    $transaction->setBankCode(2010);
                     $transaction->setAmount(1);
                 }
                 else
                 {
+                    $transaction->setAccountFrom($model->getTransactionSenderAccountNum());
+                    $transaction->setAccountTo($model->getTransactionRecipientAccountNum());
+                    $transaction->setBankCode($model->getTransactionRecipientBankCode());
                     $transaction->setAmount($model->getTransactionAmount());
                 }
 
-                //$transaction->setAccountTo($model->getTransactionRecipientAccountNum());
-                $transaction->setAccountTo(2600742963);
-
-                $transaction->setBankCode($model->getTransactionRecipientBankCode());
-                //$transaction->setVariableSymbol($model->getTransactionVariableSymbol());
+                $transaction->setVariableSymbol($model->getTransactionVariableSymbol());
                 $transaction->setDate(new \DateTime('NOW'));
                 //$transaction->setPaymentType(components\transactions\DomesticTransaction::TYPE_STANDARD);
 
