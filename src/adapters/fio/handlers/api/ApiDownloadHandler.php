@@ -2,32 +2,20 @@
 
 namespace dlds\banking\adapters\fio\handlers\api;
 
-use dlds\banking\interfaces\TransactionUploadListInterface;
-use dlds\banking\adapters\fio\components\TransactionList;
+use dlds\banking\adapters\fio\components\transactions\lists\TransactionDownloadList;
 use dlds\banking\adapters\fio\exceptions\InternalErrorException;
 use dlds\banking\adapters\fio\exceptions\TooGreedyException;
-use dlds\banking\adapters\fio\builders\UrlBuilder;
+use dlds\banking\adapters\fio\handlers\api\ApiHandler;
 use GuzzleHttp\Client as Guzzle;
 
-class ApiDownloadHandler {
+class ApiDownloadHandler extends ApiHandler {
 
     const CURRENCY_CZ = 'CZK';
-
-    /**
-     * @var \dlds\banking\adapters\fio\builders\UrlBuilder
-     * builder used to create api urls
-     */
-    protected $urlBuilder;
 
     /**
      * @var \GuzzleHttp\Client client used to communication
      */
     protected $client;
-
-    /**
-     * @var string path to communication certificate
-     */
-    protected $certificatePath;
 
     /**
      * @var string temp dir path
@@ -45,51 +33,30 @@ class ApiDownloadHandler {
     protected $exceptionOnWarning = false;
 
     /**
-     * Held instances based on API token
-     * @var array held instances
-     */
-    private static $_instances = [];
-
-    /**
-     * Private constructor for ensuring only one instance at runtime
-     * @param string $token
-     */
-    private function __construct($token)
-    {
-        $this->urlBuilder = new UrlBuilder($token);
-    }
-
-    /**
      * Singleton method for getting instance
      * @param string $token
+     * @return ApiUploadHandler instance
      */
     public static function instance($token)
     {
-        if (!isset(self::$_instances[$token]))
+        $key = sprintf('%s-%s', __CLASS__, $token);
+
+        if (!isset(self::$_instances[$key]))
         {
-            self::$_instances[$token] = new self($token);
+            self::$_instances[$key] = new self($token);
         }
 
-        return self::$_instances[$token];
+        self::$_instances[$key]->init();
+
+        return self::$_instances[$key];
     }
 
     /**
-     * @param string $path
+     * Inits instance
      */
-    public function setCertificatePath($path)
+    public function init()
     {
-        $this->certificatePath = $path;
-    }
-
-    public function getCertificatePath()
-    {
-        if ($this->certificatePath)
-        {
-            return $this->certificatePath;
-        }
-
-        //Key downloaded from https://www.geotrust.com/resources/root-certificates/
-        return __DIR__.'/../keys/Equifax_Secure_Certificate_Authority.pem';
+        // empty
     }
 
     /**
@@ -102,130 +69,6 @@ class ApiDownloadHandler {
             $this->client = new Guzzle();
         }
         return $this->client;
-    }
-
-    /**
-     * Uploads xml file into bank account
-     * @param TransactionUploadListInterface $list given list
-     */
-    public function uploadList(TransactionUploadListInterface $list)
-    {
-        $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><Import xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.fio.cz/schema/importIB.xsd"></Import>');
-        $orders = $xml->addChild('Orders');
-
-        foreach ($list->getTransactions() as $transaction)
-        {
-            var_dump($transaction);
-            die();
-            if ($transaction instanceof \dlds\banking\adapters\fio\components\transactions\DomesticTransaction)
-            {
-                $transactionxml = $orders->addChild('DomesticTransaction');
-            }
-            elseif ($transaction instanceof \dlds\banking\adapters\fio\components\transactions\ForeignTransaction)
-            {
-                die('eesss');
-                $transactionxml = $orders->addChild('ForeignTransaction');
-            }
-            elseif ($transaction instanceof \dlds\banking\adapters\fio\components\transactions\Target2Transaction)
-            {
-                $transactionxml = $orders->addChild('T2Transaction');
-            }
-
-            foreach ($transaction->getParams() as $key => $value)
-            {
-                if ($value != null)
-                {
-                    $transactionxml->addChild($key, $value);
-                }
-            }
-        }
-
-        $this->setTempDir(sys_get_temp_dir());
-
-        $tmpfname = tempnam($this->tempDir, "FIO");
-        file_put_contents($tmpfname, $xml->asXML());
-
-        if (version_compare(PHP_VERSION, '5.5', '>='))
-        {
-            $file = new \CURLFile($tmpfname, 'text/xml');
-        }
-        else
-        {
-            $file = '@'.$tmpfname;
-        }
-
-        $url = $this->urlBuilder->buildUpload();
-
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_HEADER, FALSE);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
-        if ($this->certificatePath)
-        {
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, TRUE);
-            curl_setopt($curl, CURLOPT_CAINFO, $this->certificatePath);
-        }
-        else
-        {
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-        }
-
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, array(
-            'type' => 'xml',
-            'token' => $this->urlBuilder->getToken(),
-            'lng' => 'cs',
-            'file' => $file
-        ));
-
-        $result = curl_exec($curl);
-
-        echo $result;
-        var_dump(curl_error($curl));
-        die();
-
-        unlink($filepath);
-
-        $this->curlHttpCode($curl);
-
-        return $result;
-    }
-
-    /**
-     * @param string $xml
-     * @return array
-     * @throws \FioApi\FioApiException
-     */
-    private function parseXml($xml)
-    {
-        $xml = simplexml_load_string($xml);
-
-        $transactions = array();
-        $transactions['status'] = (string) $xml->result->status;
-        if (isset($xml->result->message))
-        {
-            $transactions['message'] = (string) $xml->result->message;
-        }
-        if (isset($xml->ordersDetails))
-        {
-            foreach ($xml->ordersDetails->children() as $ch)
-            {
-                $ch2 = $ch->messages->children();
-                $transactions['transactions'][] = array('status' => (string) $ch2[0]->attributes()->status, 'message' => (string) $ch2[0]);
-            }
-        }
-
-        if ($this->exceptionOnError and $transactions['status'] == 'error')
-        {
-            throw new FioApiException('Error in transaction(s). See $e->getTransactions();', 3, $transactions);
-        }
-        if ($this->exceptionOnWarning and $transactions['status'] == 'warning')
-        {
-            throw new FioApiException('Warning in transaction(s). All transactions have been uploaded! See $e->getTransactions();', 4, $transactions);
-        }
-
-        return $transactions;
     }
 
     /**
@@ -255,7 +98,7 @@ class ApiDownloadHandler {
      */
     public function downloadFromTo(\DateTime $from, \DateTime $to)
     {
-        return $this->download($since, $to);
+        return $this->download($from, $to);
     }
 
     /**
@@ -282,7 +125,7 @@ class ApiDownloadHandler {
 
         try
         {
-            $response = $client->get($url, ['verify' => $this->getCertificatePath()]);
+            $response = $client->get($url, ['verify' => $this->urlBuilder->getCertificate()]);
         }
         catch (\GuzzleHttp\Exception\BadResponseException $e)
         {
@@ -297,42 +140,9 @@ class ApiDownloadHandler {
             throw $e;
         }
 
-        return TransactionList::create($response->json([
+        return TransactionDownloadList::create($response->json([
                     'object' => true,
                     'big_int_strings' => true,
                 ])->accountStatement);
-    }
-
-    /**
-     * Set temp dir
-     * @param string $dir PATH of temp dir
-     * @return \FioApi\FioApiUpload
-     */
-    public function setTempDir($dir)
-    {
-        $this->tempDir = $dir;
-        return $this;
-    }
-
-    /**
-     * Catch exceptions on error
-     * @param bool $bool Set to false, if you don't want to catch exceptions on error. Default value is true.
-     * @return \FioApi\FioApiUpload
-     */
-    public function setExceptionOnError($bool)
-    {
-        $this->exceptionOnError = (bool) $bool;
-        return $this;
-    }
-
-    /**
-     * Catch exception on warning
-     * @param bool $bool Set to true, if you want to catch exceptions on warning. Default value is false.
-     * @return \FioApi\FioApiUpload
-     */
-    public function setExceptionOnWarning($bool)
-    {
-        $this->exceptionOnWarning = (bool) $bool;
-        return $this;
     }
 }

@@ -19,6 +19,21 @@ abstract class ApiHandler {
     protected $urlBuilder;
 
     /**
+     * @var string path to temporary dir to store xml file
+     */
+    protected $tempDir;
+
+    /**
+     * @var boolean whether or not to throw exception on error
+     */
+    protected $exceptionOnError = false;
+
+    /**
+     * @var boolean whether or not to throw exception on warning
+     */
+    protected $exceptionOnWarning = false;
+
+    /**
      * Held instances based on API token
      * @var array held instances
      */
@@ -31,5 +46,38 @@ abstract class ApiHandler {
     protected function __construct($token)
     {
         $this->urlBuilder = new UrlBuilder($token, __DIR__.'/../../keys/certificate.pem');
+    }
+
+    /**
+     * Set temp dir
+     * @param string $dir PATH of temp dir
+     * @return \FioApi\FioApiUpload
+     */
+    public function setTempDir($dir)
+    {
+        $this->tempDir = $dir;
+        return $this;
+    }
+
+    /**
+     * Catch exceptions on error
+     * @param bool $bool Set to false, if you don't want to catch exceptions on error. Default value is true.
+     * @return \FioApi\FioApiUpload
+     */
+    public function setExceptionOnError($bool)
+    {
+        $this->exceptionOnError = (bool) $bool;
+        return $this;
+    }
+
+    /**
+     * Catch exception on warning
+     * @param bool $bool Set to true, if you want to catch exceptions on warning. Default value is false.
+     * @return \FioApi\FioApiUpload
+     */
+    public function setExceptionOnWarning($bool)
+    {
+        $this->exceptionOnWarning = (bool) $bool;
+        return $this;
     }
 }

@@ -3,6 +3,7 @@
 namespace dlds\banking\adapters\fio;
 
 use dlds\banking\Banking;
+use dlds\banking\adapters\fio\handlers\api\ApiDownloadHandler;
 use dlds\banking\adapters\fio\handlers\api\ApiUploadHandler;
 use dlds\banking\adapters\fio\components\transactions\lists\TransactionUploadList;
 use dlds\banking\interfaces\transactions\TransactionInterface;
@@ -12,10 +13,27 @@ use dlds\banking\interfaces\transactions\lists\TransactionUploadListInterface;
 
 class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\AdapterInterface {
 
+    const TEST_AMOUNT_FACTOR = 1000;
+
     /**
      * @var string given api token used to communicate with bank api
      */
     public $token;
+
+    /**
+     * @var int test account from number
+     */
+    public $testAccountNumFrom;
+
+    /**
+     * @var int test account to number
+     */
+    public $testAccountNumTo;
+
+    /**
+     * @var int test account to bank code
+     */
+    public $testAccountBankCodeTo;
 
     /**
      * @var boolean
@@ -80,7 +98,7 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
      */
     public function downloadTransactions()
     {
-        return ApiHandler::instance($this->token)->downloadNew();
+        return ApiDownloadHandler::instance($this->token)->downloadNew();
     }
 
     /**
@@ -90,7 +108,7 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
      */
     public function downloadTransactionsSince(\DateTime $datetime)
     {
-        return ApiHandler::instance($this->token)->downloadSince($datetime);
+        return ApiDownloadHandler::instance($this->token)->downloadSince($datetime);
     }
 
     /**
@@ -100,7 +118,7 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
      */
     public function downloadTransactionsFromTo(\DateTime $from, \DateTime $to)
     {
-        return ApiHandler::instance($this->token)->downloadFromTo($from, $to);
+        return ApiDownloadHandler::instance($this->token)->downloadFromTo($from, $to);
     }
 
     /**
@@ -178,10 +196,10 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
 
                 if ($this->test)
                 {
-                    $transaction->setAccountFrom('2700587809');
-                    $transaction->setAccountTo(2600742963);
-                    $transaction->setBankCode(2010);
-                    $transaction->setAmount(1);
+                    $transaction->setAccountFrom($this->testAccountNumFrom);
+                    $transaction->setAccountTo($this->testAccountNumTo);
+                    $transaction->setBankCode($this->testAccountBankCodeTo);
+                    $transaction->setAmount(round($model->getTransactionAmount() / self::TEST_AMOUNT_FACTOR, 2));
                 }
                 else
                 {
@@ -192,9 +210,10 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
                 }
 
                 $transaction->setVariableSymbol($model->getTransactionVariableSymbol());
+                $transaction->setSpecificSymbol($model->primaryKey);
                 $transaction->setDate(new \DateTime('NOW'));
-                //$transaction->setPaymentType(components\transactions\DomesticTransaction::TYPE_STANDARD);
-
+                $transaction->setMessage($model->getTransactionComment());
+                
                 if ($model->setTransactionAsReadyToPay() && $model->save())
                 {
                     $list->addTransaction($transaction);

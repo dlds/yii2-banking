@@ -32,21 +32,6 @@ class ApiUploadHandler extends ApiHandler {
     protected $orders;
 
     /**
-     * @var string path to temporary dir to store xml file
-     */
-    protected $tempDir;
-
-    /**
-     * @var boolean whether or not to throw exception on error
-     */
-    protected $exceptionOnError = false;
-
-    /**
-     * @var boolean whether or not to throw exception on warning
-     */
-    protected $exceptionOnWarning = false;
-
-    /**
      * Curl settings
      */
     protected $curlType = 'xml';
@@ -81,39 +66,6 @@ class ApiUploadHandler extends ApiHandler {
         $this->orders = $this->xml->addChild('Orders');
 
         $this->setTempDir(sys_get_temp_dir());
-    }
-
-    /**
-     * Set temp dir
-     * @param string $dir PATH of temp dir
-     * @return \FioApi\FioApiUpload
-     */
-    public function setTempDir($dir)
-    {
-        $this->tempDir = $dir;
-        return $this;
-    }
-
-    /**
-     * Catch exceptions on error
-     * @param bool $bool Set to false, if you don't want to catch exceptions on error. Default value is true.
-     * @return \FioApi\FioApiUpload
-     */
-    public function setExceptionOnError($bool)
-    {
-        $this->exceptionOnError = (bool) $bool;
-        return $this;
-    }
-
-    /**
-     * Catch exception on warning
-     * @param bool $bool Set to true, if you want to catch exceptions on warning. Default value is false.
-     * @return \FioApi\FioApiUpload
-     */
-    public function setExceptionOnWarning($bool)
-    {
-        $this->exceptionOnWarning = (bool) $bool;
-        return $this;
     }
 
     /**
@@ -228,9 +180,9 @@ class ApiUploadHandler extends ApiHandler {
     protected function curlResult(array $response)
     {
         // TODO: implement better logging result
-        
+
         \Yii::info(var_export($response, true));
-        
+
         $error = ArrayHelper::getValue($response, 'errorCode', self::ERROR_NO_RESPONSE);
 
         if (self::ERROR_NONE == $error)

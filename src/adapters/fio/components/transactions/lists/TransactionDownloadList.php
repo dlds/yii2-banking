@@ -1,7 +1,8 @@
 <?php
 
-namespace dlds\banking\adapters\fio\components;
+namespace dlds\banking\adapters\fio\components\transactions\lists;
 
+use dlds\banking\adapters\fio\components\Transaction;
 use dlds\banking\adapters\fio\components\Account;
 use dlds\banking\adapters\fio\components\transactions\lists\TransactionList;
 use dlds\banking\interfaces\transactions\lists\TransactionDownloadListInterface;

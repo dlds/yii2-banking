@@ -125,8 +125,9 @@ interface TransactionalRecordInterface {
 
     /**
      * Sets transaction as paid
+     * @param int $timestamp given performing date
      */
-    public function setTransactionAsPaid();
+    public function setTransactionAsPaid($timestamp);
 
     /**
      * Sets transaction as cancelled
