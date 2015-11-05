@@ -206,14 +206,14 @@ class FioAdapter extends \yii\base\Object implements \dlds\banking\interfaces\Ad
                     $transaction->setAccountFrom($model->getTransactionSenderAccountNum());
                     $transaction->setAccountTo($model->getTransactionRecipientAccountNum());
                     $transaction->setBankCode($model->getTransactionRecipientBankCode());
-                    $transaction->setAmount($model->getTransactionAmount());
+                    $transaction->setAmount(round($model->getTransactionAmount(), 2));
                 }
 
                 $transaction->setVariableSymbol($model->getTransactionVariableSymbol());
                 $transaction->setSpecificSymbol($model->primaryKey);
                 $transaction->setDate(new \DateTime('NOW'));
                 $transaction->setMessage($model->getTransactionComment());
-                
+
                 if ($model->setTransactionAsReadyToPay() && $model->save())
                 {
                     $list->addTransaction($transaction);
