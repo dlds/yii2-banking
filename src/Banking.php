@@ -31,7 +31,7 @@ class Banking extends \yii\base\Component {
     public $adapters;
 
     /**
-     * Retrieves appropriate adapter based on give adapter key
+     * Retrieves appropriate adapter based on given adapter key
      * @return \dlds\payment\services\payment\AdapterInterface
      * or FALSE if addapter does not exist
      */
