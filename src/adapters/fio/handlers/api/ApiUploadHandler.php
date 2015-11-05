@@ -220,9 +220,14 @@ class ApiUploadHandler extends ApiHandler {
      * @return array
      * @throws \FioApi\FioApiException
      */
-    private function parseResponseXml($xml)
+    private function parseResponseXml($response)
     {
-        $xml = simplexml_load_string($xml);
+        $xml = simplexml_load_string($response);
+
+        if (!$xml)
+        {
+            throw new \dlds\banking\adapters\fio\exceptions\ApiException('Error - Invalid response');
+        }
 
         $transactions = array();
         $transactions['status'] = (string) $xml->result->status;
